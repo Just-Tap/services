@@ -1,3 +1,4 @@
+// services/ride-management-service/src/controllers/rideController.js
 // This file contains controller functions for managing ride lifecycle.
 const Ride = require('../models/Ride');
 const DriverLocation = require('../models/DriverLocation');
@@ -65,7 +66,8 @@ const requestRide = async (req, res) => {
       pickupLocation.coordinates,
       dropoffLocation.coordinates
     );
-    const estimatedFare = calculateEstimatedFare(distanceKm);
+    // Pass requestedVehicleType to calculateEstimatedFare
+    const estimatedFare = calculateEstimatedFare(distanceKm, requestedVehicleType);
 
     // 3. Create new ride request in DB
     const newRide = await Ride.create({
@@ -357,7 +359,8 @@ const endRide = async (req, res) => {
       ride.pickupLocation.coordinates,
       dropoffCoordinates || ride.dropoffLocation.coordinates // Use actual if provided, else estimated
     );
-    const finalFare = calculateEstimatedFare(actualDistanceKm); // Recalculate based on actual distance
+    // Pass the actual ride's requestedVehicleType to calculateEstimatedFare
+    const finalFare = calculateEstimatedFare(actualDistanceKm, ride.requestedVehicleType);
 
     ride.distanceKm = actualDistanceKm;
     ride.fare = finalFare;
