@@ -46,14 +46,26 @@ const getDistanceAndDuration = async (origin, destination) => {
 };
 
 /**
- * Calculates the estimated fare based on distance and configuration.
+ * Calculates the estimated fare based on distance and vehicle type.
  * @param {number} distanceKm - Distance in kilometers.
+ * @param {string} vehicleType - The type of vehicle ('car', 'moto', 'auto').
  * @returns {number} - Estimated fare.
  */
-const calculateEstimatedFare = (distanceKm) => {
-  const { baseFarePerKm, minimumFare } = config;
-  let fare = distanceKm * baseFarePerKm;
-  return Math.max(fare, minimumFare); // Ensure fare is at least the minimum fare
+const calculateEstimatedFare = (distanceKm, vehicleType) => {
+  const fareConfig = config.vehicleFareConfig[vehicleType];
+
+  if (!fareConfig) {
+    console.warn(`No fare configuration found for vehicle type: ${vehicleType}. Using default.`);
+    // Fallback to a default or throw an error based on business logic
+    // For now, let's use a generic fallback if a type is missing in config
+    const defaultFarePerKm = parseFloat(process.env.BASE_FARE_PER_KM || '10');
+    const defaultMinimumFare = parseFloat(process.env.MINIMUM_FARE || '50');
+    let fare = distanceKm * defaultFarePerKm;
+    return Math.max(fare, defaultMinimumFare);
+  }
+
+  let fare = distanceKm * fareConfig.baseFarePerKm;
+  return Math.max(fare, fareConfig.minimumFare); // Ensure fare is at least the minimum fare
 };
 
 module.exports = {
