@@ -84,7 +84,15 @@ const DriverSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  }
+  },
+  
+   role: {
+    type: String,
+    enum: ['driver', 'admin'],
+    default: 'driver'
+  },
+
+
 }, { timestamps: true });
 
 const Driver = mongoose.model('Driver', DriverSchema);

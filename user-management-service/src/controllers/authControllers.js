@@ -11,6 +11,10 @@ const { sendUserEvent } = require('../events/userProducer'); // Kafka producer
 // @route   POST /api/v1/drivers/register
 // @access  Public
 const registerDriver = async (req, res) => {
+
+   console.log("==== registerDriver HIT ====");
+  console.log("Raw Body:", req.body);
+  console.log("Raw Files:", req.files);
 const {
   name, mobileNumber, email, dateOfBirth,
   // These will be flattened in req.body from form-data
@@ -56,6 +60,7 @@ const vehicleRc = {
   const files = req.files; // Files from multer middleware
 
   try {
+    
     // Check if driver with mobile number or email already exists
     const driverExists = await Driver.findOne({ $or: [{ mobileNumber }, { email }] });
     if (driverExists) {
@@ -173,7 +178,7 @@ const registerCustomer = async (req, res) => {
 // @access  Public
 const sendOtpForLogin = async (req, res) => {
   const { mobileNumber, userType } = req.body; // userType: 'customer', 'driver', 'admin'
-
+  
   try {
     let user;
     if (userType === 'customer') {
@@ -181,6 +186,8 @@ const sendOtpForLogin = async (req, res) => {
     } else if (userType === 'driver' || userType === 'admin') {
       user = await Driver.findOne({ mobileNumber });
       // For admin, we assume they are also stored in the Driver collection for simplicity
+      console.log('User found:', user);
+      console.log('userType:', `[${userType}]`, 'user.role:', `[${user.role}]`);
       if (userType === 'admin' && user && user.role !== 'admin') { // If user exists but isn't an admin
         return res.status(403).json({ message: 'Access denied. User is not an admin.' });
       }

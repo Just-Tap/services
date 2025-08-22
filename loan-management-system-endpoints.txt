@@ -1,0 +1,319 @@
+================================================================================
+LOAN MANAGEMENT SYSTEM - COMPLETE API ENDPOINTS DOCUMENTATION
+================================================================================
+
+This document contains all endpoints for the loan-management-system with detailed request/response formats.
+
+================================================================================
+AUTHENTICATION ENDPOINTS
+================================================================================
+
+1. SEND OTP TO MOBILE NUMBER
+   Endpoint: POST /api/auth/driver/send-otp
+   Description: Send OTP to mobile number for driver registration
+   Request Body:
+   {
+     "mobileNumber": "9876543210"
+   }
+   Response:
+   {
+     "success": true,
+     "message": "OTP sent successfully",
+     "mobileNumber": "9876543210",
+     "otp": "123456" // Only in development
+   }
+
+2. VERIFY OTP
+   Endpoint: POST /api/auth/driver/verify-otp
+   Description: Verify OTP sent to mobile number
+   Request Body:
+   {
+     "mobileNumber": "9876543210",
+     "otp": "123456"
+   }
+   Response:
+   {
+     "success": true,
+     "message": "OTP verified successfully",
+     "mobileNumber": "9876543210"
+   }
+
+3. VERIFY DRIVER ID
+   Endpoint: POST /api/auth/driver/verify-id
+   Description: Verify driver ObjectId exists in database
+   Request Body:
+   {
+     "_id": "507f1f77bcf86cd799439011"
+   }
+   Response:
+   {
+     "success": true,
+     "message": "Driver verified successfully",
+     "driver": {
+       "_id": "507f1f77bcf86cd799439011",
+       "name": "John Doe",
+       "email": "john@example.com",
+       "mobileNumber": "9876543210",
+       "isVerified": true,
+       "selfieUrl": "/uploads/selfies/selfie123.jpg"
+     }
+   }
+
+4. UPLOAD LIVE SELFIE
+   Endpoint: POST /api/auth/driver/upload-selfie
+   Description: Upload live selfie for driver verification
+   Request Body: Form-data with:
+   - _id: "507f1f77bcf86cd799439011"
+   - selfie: [file upload]
+   Response:
+   {
+     "success": true,
+     "message": "Selfie uploaded successfully",
+     "selfieUrl": "/uploads/selfies/selfie123.jpg"
+   }
+
+5. CREATE PIN
+   Endpoint: POST /api/auth/driver/create-pin
+   Description: Create 4-digit PIN for driver
+   Request Body:
+   {
+     "mobileNumber": "9876543210",
+     "pin": "1234"
+   }
+   Response:
+   {
+     "success": true,
+     "message": "PIN set successfully"
+   }
+
+6. LOGIN WITH PIN
+   Endpoint: POST /api/auth/driver/login-with-pin
+   Description: Login using mobile number and PIN
+   Request Body:
+   {
+     "mobileNumber": "9876543210",
+     "pin": "1234"
+   }
+   Response:
+   {
+     "success": true,
+     "message": "Login with PIN successful",
+     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+     "driver": {
+       "_id": "507f1f77bcf86cd799439011",
+       "name": "John Doe",
+       "email": "john@example.com",
+       "mobileNumber": "9876543210",
+       "selfieUrl": "/uploads/selfies/selfie123.jpg"
+     }
+   }
+
+================================================================================
+LOAN APPLICATION ENDPOINTS
+================================================================================
+
+7. SUBMIT LOAN APPLICATION
+   Endpoint: POST /api/loans/apply
+   Description: Submit a new loan application with document uploads
+   Authentication: Required (Bearer token)
+   Request Body: Form-data with:
+   - requestedAmount: 50000
+   - purpose: "Vehicle purchase"
+   - tenureMonths: 12
+   - governmentAddressProofImage: [file upload]
+   - selfieImage: [file upload]
+   - bankStatements: [file upload - max 3 files]
+   Response:
+   {
+     "message": "Loan application submitted successfully.",
+     "loan": {
+       "_id": "507f1f77bcf86cd799439012",
+       "driverId": "507f1f77bcf86cd799439011",
+       "requestedAmount": 50000,
+       "purpose": "Vehicle purchase",
+       "tenureMonths": 12,
+       "status": "pending",
+       "eligibilityStatus": "eligible",
+       "cibilScore": 750,
+       "kycDocuments": {
+         "governmentAddressProofImage": {
+           "filename": "gov_proof_123.jpg",
+           "path": "/uploads/address_proofs/gov_proof_123.jpg"
+         },
+         "selfieImage": {
+           "filename": "selfie_123.jpg",
+           "path": "/uploads/selfies/selfie_123.jpg"
+         },
+         "bankStatements": [
+           {
+             "filename": "bank_stmt_1.pdf",
+             "path": "/uploads/bank_statements/bank_stmt_1.pdf"
+           }
+         ]
+       },
+       "createdAt": "2024-01-15T10:30:00.000Z"
+     }
+   }
+
+8. GET ALL LOANS
+   Endpoint: GET /api/loans
+   Description: Get all loan applications (Admin only)
+   Authentication: Required (Bearer token)
+   Response:
+   [
+     {
+       "_id": "507f1f77bcf86cd799439012",
+       "driverId": "507f1f77bcf86cd799439011",
+       "requestedAmount": 50000,
+       "purpose": "Vehicle purchase",
+       "tenureMonths": 12,
+       "status": "pending",
+       "createdAt": "2024-01-15T10:30:00.000Z"
+     }
+   ]
+
+9. GET LOAN BY ID
+   Endpoint: GET /api/loans/:id
+   Description: Get specific loan application by ID
+   Authentication: Required (Bearer token)
+   Response:
+   {
+     "_id": "507f1f77bcf86cd799439012",
+     "driverId": "507f1f77bcf86cd799439011",
+     "requestedAmount": 50000,
+     "purpose": "Vehicle purchase",
+     "tenureMonths": 12,
+     "status": "pending",
+     "driverSnapshot": {
+       "name": "John Doe",
+       "email": "john@example.com",
+       "mobileNumber": "9876543210"
+     },
+     "kycDocuments": {
+       "governmentAddressProofImage": {
+         "filename": "gov_proof_123.jpg",
+         "path": "/uploads/address_proofs/gov_proof_123.jpg"
+       }
+     },
+     "createdAt": "2024-01-15T10:30:00.000Z"
+   }
+
+10. UPDATE LOAN STATUS
+    Endpoint: PUT /api/loans/:id/status
+    Description: Update loan application status (Admin only)
+    Authentication: Required (Bearer token)
+    Request Body:
+    {
+      "status": "approved",
+      "rejectionReason": "Optional rejection reason"
+    }
+    Response:
+    {
+      "message": "Loan application status updated to approved.",
+      "loan": {
+        "_id": "507f1f77bcf86cd799439012",
+        "status": "approved",
+        "approvedBy": "507f1f77bcf86cd799439013",
+        "approvedDate": "2024-01-16T10:30:00.000Z"
+      }
+    }
+
+================================================================================
+PAYMENT ENDPOINTS
+================================================================================
+
+11. RECORD PAYMENT
+    Endpoint: POST /api/loans/:loanId/payments
+    Description: Record a new payment for a loan
+    Authentication: Required (Bearer token)
+    Request Body:
+    {
+      "amount": 5000,
+      "transactionId": "TXN123456789",
+      "paymentMethod": "UPI"
+    }
+    Response:
+    {
+      "message": "Payment recorded successfully.",
+      "payment": {
+        "_id": "507f1f77bcf86cd799439014",
+        "loan": "507f1f77bcf86cd799439012",
+        "driverId": "507f1f77bcf86cd799439011",
+        "amount": 5000,
+        "transactionId": "TXN123456789",
+        "paymentMethod": "UPI",
+        "paymentDate": "2024-01-20T10:30:00.000Z"
+      },
+      "loanOutstanding": 45000,
+      "loanStatus": "ongoing"
+    }
+
+12. GET PAYMENTS BY LOAN ID
+    Endpoint: GET /api/loans/:loanId/paymentsHistory
+    Description: Get all payments for a specific loan
+    Authentication: Required (Bearer token)
+    Response:
+    [
+      {
+        "_id": "507f1f77bcf86cd799439014",
+        "loan": "507f1f77bcf86cd799439012",
+        "driverId": "507f1f77bcf86cd799439011",
+        "amount": 5000,
+        "transactionId": "TXN123456789",
+        "paymentMethod": "UPI",
+        "paymentDate": "2024-01-20T10:30:00.000Z"
+      },
+      {
+        "_id": "507f1f77bcf86cd799439015",
+        "loan": "507f1f77bcf86cd799439012",
+        "driverId": "507f1f77bcf86cd799439011",
+        "amount": 3000,
+        "transactionId": "TXN987654321",
+        "paymentMethod": "BANK_TRANSFER",
+        "paymentDate": "2024-01-25T10:30:00.000Z"
+      }
+    ]
+
+================================================================================
+ERROR RESPONSES
+================================================================================
+
+Common error responses:
+- 400 Bad Request: Invalid input format or missing required fields
+- 401 Unauthorized: Missing or invalid authentication token
+- 403 Forbidden: Insufficient permissions to access resource
+- 404 Not Found: Resource not found
+- 500 Internal Server Error: Server-side error
+
+================================================================================
+FILE UPLOAD REQUIREMENTS
+================================================================================
+
+Supported file types for uploads:
+- Images: JPG, JPEG, PNG
+- Documents: PDF
+- Maximum file size: 5MB per file
+- Maximum files: 3 for bank statements, 1 each for other documents
+
+================================================================================
+AUTHENTICATION & AUTHORIZATION
+================================================================================
+
+Required headers for authenticated endpoints:
+- Authorization: Bearer <JWT_TOKEN>
+
+Role-based access:
+- borrower: Can apply for loans, view own loans, make payments
+- admin: Can view all loans, update loan status, approve/reject applications
+- driver: Can register, verify identity, apply for loans
+
+================================================================================
+BASE URL
+================================================================================
+
+All endpoints are relative to:
+http://localhost:3000/api
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
